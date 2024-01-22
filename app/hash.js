@@ -12,48 +12,42 @@ for (const file of fileList) {
     names.push(name)
     paths.push(`${dir}/${name}`)
 }
-const codes = {}
+const destruct = {}
 
 for (let f = 0; f < paths.length; ++f) {
     const image = async () => await jimp.read(paths[f])
 
-    const getColor = () => {
-        const arr = new Array(3)
-        for (let i = 0; i < arr.length; ++i)
-            arr[i] = Math.floor(Math.random() * 255)
-        return `rgb(${arr.join(', ')})`
-    }
-    const color = getColor()
+    const colors = new Array(3)
+    for (let i = 0; i < colors.length; ++i)
+        colors[i] = Math.floor(Math.random() * 255)
+    const color = `rgb(${colors.join(', ')})`
 
-    /* No. of divisions & division[dLength] */
-    const add = (arr, l, r) => {
-        const lD = Math.floor(Math.random() * 40) + 20
-        const rD = Math.floor(Math.random() * 40) + 20
-        arr[l] = lD
-        arr[r] = rD
-        return lD + rD
-    }
-    const d = (dim, n = Math.floor(Math.random() * (Math.floor(dim / 75) - 3)) + 3) => {
+    const d = (dim) => {
+        const n = Math.floor(Math.random() * (Math.floor(dim / 75) - 3)) + 3
         const nd = !(n & 1) ? n + 1 : n
+
         const a = new Array(nd)
         let sum = 0, mid = Math.floor(a.length / 2)
-        for (let left = 0; left < mid; ++left)
-            sum += add(a, left, a.length - 1 - left)
+        for (let left = 0; left < mid; ++left) {
+            const ld = Math.floor(Math.random() * 40) + 20
+            arr[left] = ld
+            const rd = Math.floor(Math.random() * 40) + 20
+            arr[a.length - 1 - left] = rd
+            sum += (ld + rd)
+        }
         a[mid] = nd * 60 - sum
+
         return [n, a]
     }
     const [nDH, aDH] = d(image.bitmap.width)
     const [nDV, aDV] = d(image.bitmap.height)
 
-    /* Slice dimensions */
     const sW = image.bitmap.width / (nDH - 1)
     const sH = image.bitmap.height / (nDV - 1)
 
-    /* Canvas dimensions */
     const cW = image.bitmap.width + (nDH * 60)
     const cH = image.bitmap.height + (nDV * 60)
 
-    /* Canvas */
     const cvs = createCanvas(cW, cH)
     const ctx = cvs.getContext('2d')
 
@@ -71,49 +65,49 @@ for (let f = 0; f < paths.length; ++f) {
         sum += aDV[i]
     }
 
-    /* Scrambled order of slices */
-    const istack = (len) => {
-        const arr = new Array(len)
-        for (let i = 0; i < arr.length; ++i)
-            arr[i] = i
-        return arr
-    }
-    const ord = (ttl, stack = istack(ttl)) => {
-        const arr = []
-        while (stack.length) {
-            if (stack.length === 1) {
-                arr.push(stack[0])
-                stack.pop()
-                continue
-            }
-            const s = Math.floor(Math.random() * stack.length)
-            arr.push(stack[s])
-            stack.splice(s, 1)
+    const ttl = (nDH - 1) * (nDV - 1)
+    const stack = new Array(ttl)
+    for (let i = 0; i < stack.length; ++i) stack[i] = i
+
+    const order = []
+    while (stack.length) {
+        if (stack.length === 1) {
+            order.push(stack[0])
+            stack.pop()
+            continue
         }
-        return arr
+        const s = Math.floor(Math.random() * stack.length)
+        order.push(stack[s])
+        stack.splice(s, 1)
     }
-    const order = ord((nDH - 1) * (nDV - 1))
 
-    /* Code for scrambled image */
-    const code = (sW, nDHm, aDH, sH, nDVm, aDV) => {
-        const arr = []
-        arr.push(sW, sH, nDHm, nDVm)
-        
-        let min = arr.length, max = arr.length + aDH.length - 1, mid = Math.floor(aDH.length / 2)
-        for (let i = min; i < max; ++i)
-            arr.push(i - min >= mid ? aDH[i - min + 1] : aDH[i - min])
-        
-        min = arr.length, max = arr.length + aDV.length - 1, mid = Math.floor(aDV.length / 2)
-        for (let i = min; i < max; ++i)
-            arr.push(i - min >= mid ? aDV[i - min + 1] : aDV[i - min])
-    
-        return arr
+    destruct[names[f]] = {
+        sw: sW,
+        sh: sH,
+        ndhm: nDH - 1,
+        ndvm: nDV - 1,
+        adh: aDH,
+        adv: aDV,
+        o: order
     }
-    codes[names[f]] = code(sW, nDH - 1, aDH, sH, nDV - 1, aDV).join('-')
 
-    /* Place image slices => mosaic image */
+    sum = 0
+    const xpos = aDH.map((e, i) => {
+        const x = sum + (i * sW)
+        sum += e
+        return x
+    })
+
+    sum = 0
+    const ypos = aDV.map((e, i) => {
+        const y = sum + (i * sH)
+        sum += e
+        return y
+    })
+
     loadImage(paths[f]).then(img => {
         for (let i = 0; i < order.length; ++i) {
+            // ctx.drawImage(sx, sy, swidth, sheight, dx, dy, dwidth, dheight)
         }
         
         const buffer = cvs.toBuffer('image/png')
