@@ -1,0 +1,16 @@
+{
+  "name": "image-hasher",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "canvas": "^2.11.2",
+    "jimp": "^0.22.10"
+  },
+  "scripts": {
+    "start": "node --env-file=process.env app/hash.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
