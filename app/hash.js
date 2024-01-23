@@ -16,56 +16,17 @@ const destruct = {}
 
 for (let f = 0; f < paths.length; ++f) {
     const image = async () => await jimp.read(paths[f])
-
-    const colors = new Array(3)
-    for (let i = 0; i < colors.length; ++i)
-        colors[i] = Math.floor(Math.random() * 255)
-    const color = `rgb(${colors.join(', ')})`
-
-    const d = (dim) => {
-        const n = Math.floor(Math.random() * (Math.floor(dim / 75) - 3)) + 3
-        const nd = !(n & 1) ? n + 1 : n
-
-        const a = new Array(nd)
-        let sum = 0, mid = Math.floor(a.length / 2)
-        for (let left = 0; left < mid; ++left) {
-            const ld = Math.floor(Math.random() * 40) + 20
-            arr[left] = ld
-            const rd = Math.floor(Math.random() * 40) + 20
-            arr[a.length - 1 - left] = rd
-            sum += (ld + rd)
-        }
-        a[mid] = nd * 60 - sum
-
-        return [n, a]
-    }
-    const [nDH, aDH] = d(image.bitmap.width)
-    const [nDV, aDV] = d(image.bitmap.height)
-
-    const sW = image.bitmap.width / (nDH - 1)
-    const sH = image.bitmap.height / (nDV - 1)
-
-    const cW = image.bitmap.width + (nDH * 60)
-    const cH = image.bitmap.height + (nDV * 60)
+    const cW = image.bitmap.width
+    const nW = Math.floor(Math.random() * Math.floor(cW / 75)) + 3
+    const sW = image.bitmap.width / nW
+    const cH = image.bitmap.height
+    const nH = Math.floor(Math.random() * Math.floor(cH / 75)) + 3
+    const sH = image.bitmap.height / nH
 
     const cvs = createCanvas(cW, cH)
     const ctx = cvs.getContext('2d')
 
-    let sum = 0
-    for (let i = 0; i < aDH.length; ++i) {
-        ctx.fillStyle = color
-        ctx.fillRect(sum + (i * sW), 0, aDH[i], cH)
-        sum += aDH[i]
-    }
-
-    sum = 0
-    for (let i = 0; i < aDV.length; ++i) {
-        ctx.fillStyle = color
-        ctx.fillRect(0, sum + (i * sH), cW, aDV[i])
-        sum += aDV[i]
-    }
-
-    const ttl = (nDH - 1) * (nDV - 1)
+    const ttl = nW * nH
     const stack = new Array(ttl)
     for (let i = 0; i < stack.length; ++i) stack[i] = i
 
@@ -84,26 +45,10 @@ for (let f = 0; f < paths.length; ++f) {
     destruct[names[f]] = {
         sw: sW,
         sh: sH,
-        ndhm: nDH - 1,
-        ndvm: nDV - 1,
-        adh: aDH,
-        adv: aDV,
+        nw: nW,
+        nh: nH,
         o: order
     }
-
-    sum = 0
-    const xpos = aDH.map((e, i) => {
-        const x = sum + (i * sW)
-        sum += e
-        return x
-    })
-
-    sum = 0
-    const ypos = aDV.map((e, i) => {
-        const y = sum + (i * sH)
-        sum += e
-        return y
-    })
 
     loadImage(paths[f]).then(img => {
         for (let i = 0; i < order.length; ++i) {
