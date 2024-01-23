@@ -1,6 +1,6 @@
-# Image Hasher
+# Mosaic Maker
 
-Deconstruct image into re-arranged mosaic with code for reconstructing original arrangement
+Deconstruct single image into re-arranged mosaic with code for reconstructing original arrangement
 
 ## Description
 
